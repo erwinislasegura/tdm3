@@ -6,6 +6,7 @@ use App\Controllers\AuditController;
 use App\Controllers\CompetitionFormatController;
 use App\Controllers\AuthController;
 use App\Controllers\DashboardController;
+use App\Controllers\LiveController;
 use App\Controllers\MatchController;
 use App\Controllers\OrganizationController;
 use App\Controllers\PlayerController;
@@ -25,6 +26,8 @@ $router->get('/torneos', [PublicController::class, 'tournaments']);
 $router->get('/rankings', [PublicController::class, 'rankings']);
 $router->get('/nosotros', [PublicController::class, 'about']);
 $router->get('/contacto', [PublicController::class, 'contact']);
+$router->get('/live', [LiveController::class, 'public']);
+$router->get('/live/feed', [LiveController::class, 'feed']);
 
 $router->get('/login', [AuthController::class, 'loginForm']);
 $router->post('/login', [AuthController::class, 'login']);
@@ -42,6 +45,8 @@ $router->get('/admin/tournaments', [TournamentController::class, 'index'], $admi
 $router->post('/admin/tournaments', [TournamentController::class, 'store'], $admin);
 $router->get('/admin/registrations', [RegistrationController::class, 'index'], $admin);
 $router->get('/admin/matches', [MatchController::class, 'index'], $admin);
+$router->get('/admin/live', [LiveController::class, 'admin'], [AuthMiddleware::class]);
+$router->get('/admin/live/feed', [LiveController::class, 'feed'], [AuthMiddleware::class]);
 $router->get('/admin/rankings', [RankingController::class, 'index'], [AuthMiddleware::class]);
 $router->get('/admin/reports', [ReportController::class, 'index'], [AuthMiddleware::class]);
 
