@@ -1,0 +1,2 @@
+<h2>Inscripciones</h2>
+<div class="card p-3 table-responsive"><table class="table"><thead><tr><th>Torneo</th><th>Jugador</th><th>Estado</th><th>Fecha</th></tr></thead><tbody><?php foreach($registrations as $r): ?><tr><td><?= e($r['tournament_name']) ?></td><td><?= e($r['player_name']) ?></td><td><span class="badge bg-warning text-dark"><?= e($r['status']) ?></span></td><td><?= e($r['created_at']) ?></td></tr><?php endforeach; ?></tbody></table></div>
