@@ -7,6 +7,7 @@
   <?php if (has_permission('tournament.manage')): ?><a href="/admin/tournaments"><i class="fa-solid fa-trophy"></i> Torneos</a><?php endif; ?>
   <?php if (has_permission('tournament.manage')): ?><a href="/admin/registrations"><i class="fa-solid fa-clipboard-check"></i> Inscripciones</a><?php endif; ?>
   <?php if (has_permission('matches.view')): ?><a href="/admin/matches"><i class="fa-solid fa-stopwatch"></i> Partidos</a><?php endif; ?>
+  <?php if (has_permission('live.view')): ?><a href="/admin/live"><i class="fa-solid fa-tower-broadcast"></i> Live Center</a><?php endif; ?>
   <?php if (has_permission('groups.view')): ?><a href="/admin/competition-formats"><i class="fa-solid fa-object-group"></i> Grupos y Knockout</a><?php endif; ?>
   <?php if (has_permission('matches.view')): ?><a href="/admin/rankings"><i class="fa-solid fa-ranking-star"></i> Rankings</a><?php endif; ?>
   <?php if (has_permission('audit.view')): ?><a href="/admin/audit-logs"><i class="fa-solid fa-shield"></i> Auditoría</a><?php endif; ?>
