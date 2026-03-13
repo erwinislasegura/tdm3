@@ -5,12 +5,11 @@ declare(strict_types=1);
 namespace App\Controllers;
 
 use App\Core\Controller;
-use App\Core\Database;
 use App\Models\CompetitionFormat;
 use App\Services\AuditLogService;
 use App\Services\GroupDrawService;
-use App\Services\GroupStandingService;
 use App\Services\KnockoutDrawService;
+use App\Services\MatchScoreService;
 use App\Services\PermissionService;
 use App\Services\QualificationService;
 
@@ -100,17 +99,20 @@ class CompetitionFormatController extends Controller
             $sets = [];
         }
 
-        $db = Database::getConnection();
-        $stmt = $db->prepare('UPDATE group_matches SET winner_player_id=?, status=?, sets_json=?, walkover_side=?, notes=?, table_number=?, scheduled_at=?, referee_id=? WHERE id=?');
-        $stmt->execute([$winner, $_POST['status'] ?? 'finished', json_encode($sets), $_POST['walkover_side'] ?? null, $_POST['notes'] ?? null, $_POST['table_number'] ?: null, $_POST['scheduled_at'] ?: null, $_POST['referee_id'] ?: null, $matchId]);
-
-        $g = $db->prepare('SELECT group_id FROM group_matches WHERE id=?');
-        $g->execute([$matchId]);
-        $groupId = (int)$g->fetch()['group_id'];
-        (new GroupStandingService())->recalculate($id, $groupId);
-
-        AuditLogService::log('score', 'group_matches', 'Marcador actualizado partido #' . $matchId);
-        flash('success', 'Resultado guardado');
+        try {
+            (new MatchScoreService())->scoreGroupMatch($id, $matchId, $winner, $sets, [
+                'status' => $_POST['status'] ?? 'finished',
+                'walkover_side' => $_POST['walkover_side'] ?? null,
+                'notes' => $_POST['notes'] ?? null,
+                'table_number' => $_POST['table_number'] ?? null,
+                'scheduled_at' => $_POST['scheduled_at'] ?? null,
+                'referee_id' => $_POST['referee_id'] ?? null,
+            ]);
+            AuditLogService::log('score', 'group_matches', 'Marcador actualizado partido #' . $matchId);
+            flash('success', 'Resultado guardado');
+        } catch (\Throwable $e) {
+            flash('error', $e->getMessage());
+        }
         redirect('/admin/competition-formats/' . $id);
     }
 

@@ -12,6 +12,7 @@ Plataforma profesional de torneos de tenis de mesa con PHP 8.2+, MySQL y arquite
 - Tablas con buscador y paginación en organizaciones, jugadores, torneos y usuarios.
 - Logs de auditoría para login/logout y acciones críticas de creación/configuración.
 - Live Center (admin + público) con actualización automática de partidos, sets, tablas de grupos y llaves activas via fetch/AJAX.
+- Scoring transaccional por sets para grupos con persistencia por set en MySQL (`group_match_sets`).
 
 ## Estructura
 
@@ -43,6 +44,7 @@ mysql -u root -p < database/migrations/003_add_referees_module.sql
 mysql -u root -p < database/migrations/005_add_root_role.sql
 mysql -u root -p < database/migrations/006_add_settings_and_audit_indexes.sql
 mysql -u root -p < database/updates/004_add_live_score_fields.sql
+mysql -u root -p < database/migrations/015_add_group_match_sets.sql
 php -S 0.0.0.0:8000 -t .
 ```
 
