@@ -63,6 +63,9 @@ class MatchScoreService
             $normalizedSets[] = ['number' => $index + 1, 'a' => $a, 'b' => $b, 'winner_player_id' => $setWinner];
         }
 
+        $bestOf = 5;
+        $requiredWins = (int)floor($bestOf / 2) + 1;
+        $isComplete = $winsA >= $requiredWins || $winsB >= $requiredWins;
         $calculatedWinner = $winsA === $winsB ? 0 : ($winsA > $winsB ? $playerA : $playerB);
         if ($winnerPlayerId === 0) {
             $winnerPlayerId = $calculatedWinner;
@@ -76,7 +79,7 @@ class MatchScoreService
             throw new RuntimeException('El ganador indicado no coincide con el resultado de los sets.');
         }
 
-        $status = (string)($meta['status'] ?? 'finished');
+        $status = (string)($meta['status'] ?? ($isComplete ? 'finished' : 'in_game'));
         if (!in_array($status, ['pending', 'scheduled', 'called', 'in_game', 'finished', 'suspended', 'walkover'], true)) {
             $status = 'finished';
         }
@@ -93,7 +96,7 @@ class MatchScoreService
             $update = $db->prepare('UPDATE group_matches
                 SET winner_player_id=:winner, status=:status, sets_json=:sets, walkover_side=:walkover, notes=:notes,
                     table_number=:table_number, scheduled_at=:scheduled_at, referee_id=:referee_id,
-                    points_a=:points_a, points_b=:points_b
+                    points_a=:points_a, points_b=:points_b, sets_won_a=:sets_won_a, sets_won_b=:sets_won_b, is_walkover=:is_walkover
                 WHERE id=:id');
 
             $tableNumber = $meta['table_number'] ?? null;
@@ -111,6 +114,9 @@ class MatchScoreService
                 ':referee_id' => $refereeId !== '' ? $refereeId : null,
                 ':points_a' => $pointsA,
                 ':points_b' => $pointsB,
+                ':sets_won_a' => $winsA,
+                ':sets_won_b' => $winsB,
+                ':is_walkover' => $status === 'walkover' ? 1 : 0,
                 ':id' => $matchId,
             ]);
 

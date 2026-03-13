@@ -7,7 +7,9 @@ namespace App\Controllers;
 use App\Core\Controller;
 use App\Models\CompetitionFormat;
 use App\Services\AuditLogService;
-use App\Services\GroupDrawService;
+use App\Services\GroupGenerationService;
+use App\Services\GroupStandingService;
+use App\Services\GroupViewService;
 use App\Services\KnockoutDrawService;
 use App\Services\MatchScoreService;
 use App\Services\PermissionService;
@@ -47,21 +49,22 @@ class CompetitionFormatController extends Controller
     public function show(int $id): void
     {
         PermissionService::authorize('groups.view');
-        $model = new CompetitionFormat();
-        $format = $model->find($id);
-        if (!$format) {
+        $payload = (new GroupViewService())->load($id);
+        if ($payload === []) {
             flash('error', 'Formato no encontrado');
             redirect('/admin/competition-formats');
         }
-        $groups = $model->groups($id);
-        $groupDetails = [];
-        foreach ($groups as $group) {
-            $groupDetails[$group['id']] = $model->groupDetails((int)$group['id']);
-        }
+
+        $format = $payload['format'];
+        $groups = $payload['groups'];
+        $groupDetails = $payload['groupDetails'];
+        $checklist = $payload['checklist'];
+        $emptyStates = $payload['emptyStates'];
+        $model = new CompetitionFormat();
         $bracket = $model->latestBracket($id);
         $slots = $bracket ? $model->bracketSlots((int)$bracket['id']) : [];
 
-        $this->render('competition_formats/show', compact('format', 'groups', 'groupDetails', 'bracket', 'slots'));
+        $this->render('competition_formats/show', compact('format', 'groups', 'groupDetails', 'checklist', 'emptyStates', 'bracket', 'slots'));
     }
 
     public function generateGroups(int $id): void
@@ -72,7 +75,7 @@ class CompetitionFormatController extends Controller
             redirect('/admin/competition-formats/' . $id);
         }
         try {
-            $result = (new GroupDrawService())->generate($id);
+            $result = (new GroupGenerationService())->generate($id);
             AuditLogService::log('generate', 'groups', 'Grupos generados formato #' . $id);
             if (!empty($result['warnings'])) {
                 flash('error', implode(' | ', $result['warnings']));
@@ -82,6 +85,39 @@ class CompetitionFormatController extends Controller
         } catch (\Throwable $e) {
             flash('error', $e->getMessage());
         }
+        redirect('/admin/competition-formats/' . $id);
+    }
+
+    public function recalculateStandings(int $id, int $groupId): void
+    {
+        PermissionService::authorize('standings.recalculate');
+        if (!verify_csrf()) {
+            flash('error', 'Token inválido');
+            redirect('/admin/competition-formats/' . $id);
+        }
+
+        try {
+            (new GroupStandingService())->recalculate($id, $groupId);
+            AuditLogService::log('recalculate', 'group_standings', 'Recalculada tabla para grupo #' . $groupId);
+            flash('success', 'Tabla recalculada correctamente.');
+        } catch (\Throwable $e) {
+            flash('error', $e->getMessage());
+        }
+
+        redirect('/admin/competition-formats/' . $id);
+    }
+
+    public function lockGroup(int $id, int $groupId): void
+    {
+        PermissionService::authorize('groups.lock');
+        if (!verify_csrf()) {
+            flash('error', 'Token inválido');
+            redirect('/admin/competition-formats/' . $id);
+        }
+
+        (new CompetitionFormat())->toggleGroupLock($groupId);
+        AuditLogService::log('lock', 'groups', 'Cambio de bloqueo grupo #' . $groupId);
+        flash('success', 'Estado de bloqueo actualizado.');
         redirect('/admin/competition-formats/' . $id);
     }
 
@@ -118,7 +154,7 @@ class CompetitionFormatController extends Controller
 
     public function closeGroups(int $id): void
     {
-        PermissionService::authorize('groups.close');
+        PermissionService::authorize('qualifications.generate');
         if (!verify_csrf()) {
             flash('error', 'Token inválido');
             redirect('/admin/competition-formats/' . $id);
@@ -150,5 +186,32 @@ class CompetitionFormatController extends Controller
             flash('error', $e->getMessage());
         }
         redirect('/admin/competition-formats/' . $id);
+    }
+
+    // Alias de rutas de fase solicitadas
+    public function phaseGroupsView(int $multiTournamentId, int $tournamentId, int $phaseId): void
+    {
+        $this->show($phaseId);
+    }
+
+    public function phaseGenerateGroups(int $phaseId): void
+    {
+        $this->generateGroups($phaseId);
+    }
+
+    public function phaseGroupClose(int $phaseId, int $groupId): void
+    {
+        $this->lockGroup($phaseId, $groupId);
+    }
+
+    public function phaseClassify(int $phaseId): void
+    {
+        $this->closeGroups($phaseId);
+    }
+
+    public function scoreByMatchId(int $matchId): void
+    {
+        $formatId = (new CompetitionFormat())->formatIdByMatch($matchId);
+        $this->scoreMatch($formatId, $matchId);
     }
 }
