@@ -31,15 +31,22 @@ $requestUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 
 $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
 $baseDir = rtrim(str_replace('\\', '/', dirname($scriptName)), '/');
-if ($baseDir && $baseDir !== '.' && str_starts_with($requestUri, $baseDir)) {
+if ($baseDir && $baseDir !== '.' && strpos($requestUri, $baseDir) === 0) {
     $requestUri = substr($requestUri, strlen($baseDir)) ?: '/';
 }
 
 if ($requestUri === '/index.php' || $requestUri === '/index.php/') {
     $requestUri = '/';
-} elseif (str_starts_with($requestUri, '/index.php/')) {
+} elseif (strpos($requestUri, '/index.php/') === 0) {
     $requestUri = substr($requestUri, strlen('/index.php')) ?: '/';
 }
 
 $uri = '/' . ltrim($requestUri, '/');
-$router->dispatch($method, $uri);
+
+try {
+    $router->dispatch($method, $uri);
+} catch (\Throwable $exception) {
+    error_log(sprintf('[%s] %s in %s:%d', date('c'), $exception->getMessage(), $exception->getFile(), $exception->getLine()));
+    http_response_code(200);
+    (new App\Controllers\AuthController())->loginForm();
+}
