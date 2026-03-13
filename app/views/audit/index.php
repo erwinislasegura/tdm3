@@ -1,0 +1,2 @@
+<h2>Auditoría del sistema</h2>
+<div class="card p-3 table-responsive"><table class="table table-modern"><thead><tr><th>Fecha</th><th>Acción</th><th>Módulo</th><th>Descripción</th><th>IP</th></tr></thead><tbody><?php foreach($logs as $l): ?><tr><td><?= e($l['created_at']) ?></td><td><?= e($l['action']) ?></td><td><?= e($l['module_name']) ?></td><td><?= e($l['description']) ?></td><td><?= e($l['ip_address']) ?></td></tr><?php endforeach; ?></tbody></table></div>
