@@ -27,6 +27,19 @@ $router = new App\Core\Router();
 require BASE_PATH . '/routes/web.php';
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-$uri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
+$requestUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 
+$scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
+$baseDir = rtrim(str_replace('\\', '/', dirname($scriptName)), '/');
+if ($baseDir && $baseDir !== '.' && str_starts_with($requestUri, $baseDir)) {
+    $requestUri = substr($requestUri, strlen($baseDir)) ?: '/';
+}
+
+if ($requestUri === '/index.php' || $requestUri === '/index.php/') {
+    $requestUri = '/';
+} elseif (str_starts_with($requestUri, '/index.php/')) {
+    $requestUri = substr($requestUri, strlen('/index.php')) ?: '/';
+}
+
+$uri = '/' . ltrim($requestUri, '/');
 $router->dispatch($method, $uri);
