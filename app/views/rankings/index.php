@@ -1,0 +1,2 @@
+<h2>Ranking administrativo</h2>
+<div class="card p-3 table-responsive"><table class="table"><thead><tr><th>Posición</th><th>Jugador</th><th>Club</th><th>Puntos</th></tr></thead><tbody><?php foreach($ranking as $r): ?><tr><td><?= e((string)$r['position']) ?></td><td><?= e($r['player_name']) ?></td><td><?= e($r['club_name']) ?></td><td><?= e((string)$r['points']) ?></td></tr><?php endforeach; ?></tbody></table></div>
