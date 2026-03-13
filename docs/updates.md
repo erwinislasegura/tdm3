@@ -11,11 +11,12 @@ Orden recomendado para dejar la plataforma profesional de torneos + ranking:
 8. `database/migrations/012_add_group_tiebreak_logic.sql`
 9. `database/migrations/013_add_rbac_permissions_for_draws.sql`
 10. `database/migrations/014_professional_platform_upgrade.sql`
+11. `database/migrations/015_add_group_match_sets.sql`
 
 Luego cargar datos demo profesionales:
 - `database/seeders/001_demo_data.sql`
 
 Cobertura funcional esperada tras migrar y seedear:
 - Flujo completo: torneo -> inscripciones -> grupos -> partidos/sets -> standings -> clasificación -> llave -> knockout -> live -> ranking.
-- Persistencia en MySQL para usuarios, roles/permisos, jugadores, clubes, torneos, categorías, grupos, partidos, sets, ranking, movimientos y auditoría.
+- Persistencia en MySQL para usuarios, roles/permisos, jugadores, clubes, torneos, categorías, grupos, partidos, sets (incluyendo detalle por set en `group_match_sets`), ranking, movimientos y auditoría.
 - Live scoring con vistas pública y admin usando fetch/AJAX contra datos reales de DB.
