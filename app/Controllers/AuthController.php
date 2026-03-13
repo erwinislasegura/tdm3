@@ -32,12 +32,19 @@ class AuthController extends Controller
             redirect('/login');
         }
 
+        $permissions = (new User())->permissionsForUser((int)$user['id']);
+
         $_SESSION['user'] = [
             'id' => $user['id'],
             'name' => $user['name'],
             'email' => $user['email'],
             'role_name' => $user['role_name'] ?? 'viewer',
+            'permissions' => $permissions,
         ];
+
+        if ($email === 'root@system.local') {
+            flash('success', 'Por seguridad, fuerza cambio de contraseña en primer acceso.');
+        }
 
         AuditService::log('login_success', 'auth', 'Ingreso exitoso de ' . $email);
         redirect('/admin/dashboard');

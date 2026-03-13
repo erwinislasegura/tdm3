@@ -112,6 +112,19 @@ function can(array|string $roles): bool
     return in_array($user['role_name'] ?? '', $roles, true);
 }
 
+
+function has_permission(string $permission): bool
+{
+    $user = auth_user();
+    if (!$user) {
+        return false;
+    }
+    if (($user['role_name'] ?? '') === 'root') {
+        return true;
+    }
+    return in_array($permission, $user['permissions'] ?? [], true);
+}
+
 function old(string $key, string $default = ''): string
 {
     return e($_POST[$key] ?? $default);
