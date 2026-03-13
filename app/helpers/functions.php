@@ -4,10 +4,29 @@ declare(strict_types=1);
 
 use App\Core\Container;
 
+function app_base_path(): string
+{
+    $config = Container::get('config');
+    $base = $config['app']['base_path'] ?? '';
+    $base = rtrim((string)$base, '/');
+    if ($base === '/' || $base === '.') {
+        return '';
+    }
+    return $base;
+}
+
+function url(string $path = ''): string
+{
+    $base = app_base_path();
+    $path = '/' . ltrim($path, '/');
+    return ($base ?: '') . ($path === '/' ? '/' : $path);
+}
+
 function base_url(string $path = ''): string
 {
     $config = Container::get('config');
-    return rtrim($config['app']['url'], '/') . '/' . ltrim($path, '/');
+    $root = rtrim($config['app']['url'], '/');
+    return $root . url($path);
 }
 
 function view(string $view, array $data = []): void
@@ -19,11 +38,26 @@ function view(string $view, array $data = []): void
         echo "Vista no encontrada: {$view}";
         return;
     }
+
+    ob_start();
     require BASE_PATH . '/app/views/layouts/main.php';
+    $html = ob_get_clean();
+
+    $base = app_base_path();
+    if ($base !== '') {
+        $html = preg_replace_callback('/\b(href|src|action)=("|\')\/(?!\/)/', static function (array $m) use ($base): string {
+            return $m[1] . '=' . $m[2] . $base . '/';
+        }, $html) ?? $html;
+    }
+
+    echo $html;
 }
 
 function redirect(string $path): void
 {
+    if (!preg_match('#^https?://#i', $path)) {
+        $path = url($path);
+    }
     header('Location: ' . $path);
     exit;
 }

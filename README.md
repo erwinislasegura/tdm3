@@ -59,3 +59,11 @@ php -S 0.0.0.0:8000 -t .
 - Configuración global (ROOT)
 
 Documentación extendida en `/docs`.
+
+
+## Nota XAMPP / subcarpeta
+
+Si abres el proyecto como `http://localhost/tdm3/`, el sistema detecta automáticamente la subruta.
+También puedes forzarla con `APP_BASE_PATH` (por ejemplo `/tdm3`).
+
+Asegúrate de tener `.htaccess` habilitado con `mod_rewrite` en Apache para rutas amigables.

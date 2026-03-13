@@ -5,7 +5,8 @@ declare(strict_types=1);
 return [
     'app' => [
         'name' => 'TDM Pro Manager',
-        'url' => getenv('APP_URL') ?: 'http://localhost:8000',
+        'url' => getenv('APP_URL') ?: 'http://localhost',
+        'base_path' => getenv('APP_BASE_PATH') ?: '',
         'debug' => true,
     ],
     'db' => [

@@ -20,19 +20,20 @@ spl_autoload_register(function (string $class): void {
     }
 });
 
-$config = require BASE_PATH . '/config/app.php';
-App\Core\Container::set('config', $config);
-
-$router = new App\Core\Router();
-require BASE_PATH . '/routes/web.php';
-
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $requestUri = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
-
 $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-$baseDir = rtrim(str_replace('\\', '/', dirname($scriptName)), '/');
-if ($baseDir && $baseDir !== '.' && strpos($requestUri, $baseDir) === 0) {
-    $requestUri = substr($requestUri, strlen($baseDir)) ?: '/';
+$detectedBaseDir = rtrim(str_replace('\\', '/', dirname($scriptName)), '/');
+$detectedBaseDir = ($detectedBaseDir === '.' || $detectedBaseDir === '/') ? '' : $detectedBaseDir;
+
+$config = require BASE_PATH . '/config/app.php';
+if (empty($config['app']['base_path'])) {
+    $config['app']['base_path'] = $detectedBaseDir;
+}
+App\Core\Container::set('config', $config);
+
+if ($detectedBaseDir && strpos($requestUri, $detectedBaseDir) === 0) {
+    $requestUri = substr($requestUri, strlen($detectedBaseDir)) ?: '/';
 }
 
 if ($requestUri === '/index.php' || $requestUri === '/index.php/') {
@@ -42,6 +43,9 @@ if ($requestUri === '/index.php' || $requestUri === '/index.php/') {
 }
 
 $uri = '/' . ltrim($requestUri, '/');
+
+$router = new App\Core\Router();
+require BASE_PATH . '/routes/web.php';
 
 try {
     $router->dispatch($method, $uri);
