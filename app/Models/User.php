@@ -64,4 +64,14 @@ class User extends Model
         $roleStmt = $this->db->prepare('INSERT INTO user_roles (user_id,role_id) VALUES (?,?)');
         return $roleStmt->execute([$userId, (int)$data['role_id']]);
     }
+
+    public function permissionsForUser(int $userId): array
+    {
+        $stmt = $this->db->prepare('SELECT DISTINCT p.name FROM permissions p
+            INNER JOIN role_permissions rp ON rp.permission_id=p.id
+            INNER JOIN user_roles ur ON ur.role_id=rp.role_id
+            WHERE ur.user_id=?');
+        $stmt->execute([$userId]);
+        return array_map(static fn(array $row): string => $row['name'], $stmt->fetchAll());
+    }
 }
