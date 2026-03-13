@@ -19,7 +19,7 @@ use App\Middlewares\AdminMiddleware;
 use App\Middlewares\AuthMiddleware;
 use App\Middlewares\RootMiddleware;
 
-$router->get('/', [PublicController::class, 'home']);
+$router->get('/', [AuthController::class, 'loginForm']);
 $router->get('/torneos', [PublicController::class, 'tournaments']);
 $router->get('/rankings', [PublicController::class, 'rankings']);
 $router->get('/nosotros', [PublicController::class, 'about']);

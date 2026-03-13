@@ -42,7 +42,7 @@ mysql -u root -p < database/migrations/003_add_referees_module.sql
 mysql -u root -p < database/migrations/005_add_root_role.sql
 mysql -u root -p < database/migrations/006_add_settings_and_audit_indexes.sql
 mysql -u root -p < database/updates/004_add_live_score_fields.sql
-php -S 0.0.0.0:8000 -t public
+php -S 0.0.0.0:8000 -t .
 ```
 
 ## Módulos administrativos actuales

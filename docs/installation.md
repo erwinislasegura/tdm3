@@ -12,7 +12,7 @@
 4. Aplicar updates:
    - `mysql -u root -p < database/updates/004_add_live_score_fields.sql`
 5. Levantar servidor:
-   - `php -S 0.0.0.0:8000 -t public`
+   - `php -S 0.0.0.0:8000 -t .`
 
 ## Credenciales demo
 - ROOT: `root@system.local` / `Root12345!` (**cambiar al primer inicio**).
