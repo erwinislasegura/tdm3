@@ -1,0 +1,1 @@
+<div class="card p-4"><h2>Reportes y exportaciones</h2><p>Exporta PDFs de inscritos, grupos, llaves, programación y resultados desde el servicio de reportes (Dompdf listo para integrar en app/Services/PdfService.php).</p></div>
