@@ -65,7 +65,7 @@ class CompetitionFormat extends Model
 
     public function groups(int $formatId): array
     {
-        $stmt = $this->db->prepare('SELECT g.id,g.name FROM `groups` g INNER JOIN group_players gp ON gp.group_id=g.id WHERE gp.format_id=? GROUP BY g.id,g.name ORDER BY g.name');
+        $stmt = $this->db->prepare('SELECT g.*, COUNT(gp.id) players_count FROM `groups` g INNER JOIN group_players gp ON gp.group_id=g.id WHERE gp.format_id=? GROUP BY g.id ORDER BY g.order_index, g.name');
         $stmt->execute([$formatId]);
         return $stmt->fetchAll();
     }
@@ -103,6 +103,22 @@ class CompetitionFormat extends Model
         $stmt = $this->db->prepare('SELECT * FROM knockout_brackets WHERE format_id=? AND deleted_at IS NULL ORDER BY id DESC LIMIT 1');
         $stmt->execute([$formatId]);
         return $stmt->fetch() ?: null;
+    }
+
+
+
+    public function toggleGroupLock(int $groupId): void
+    {
+        $stmt = $this->db->prepare('UPDATE `groups` SET is_locked = CASE WHEN is_locked=1 THEN 0 ELSE 1 END, status = CASE WHEN is_locked=1 THEN "active" ELSE "locked" END WHERE id=?');
+        $stmt->execute([$groupId]);
+    }
+
+    public function formatIdByMatch(int $matchId): int
+    {
+        $stmt = $this->db->prepare('SELECT format_id FROM group_matches WHERE id=? LIMIT 1');
+        $stmt->execute([$matchId]);
+        $row = $stmt->fetch();
+        return (int)($row['format_id'] ?? 0);
     }
 
     public function bracketSlots(int $bracketId): array

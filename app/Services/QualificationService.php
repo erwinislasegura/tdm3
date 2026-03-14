@@ -18,6 +18,9 @@ class QualificationService
         }
 
         $db->prepare('DELETE FROM qualified_players WHERE format_id=?')->execute([$formatId]);
+        $db->prepare('DELETE FROM qualifications WHERE format_id=?')->execute([$formatId]);
+        $db->prepare('UPDATE group_players SET qualified=0, position_final=NULL WHERE format_id=?')->execute([$formatId]);
+        $db->prepare('UPDATE group_standings SET qualified=0 WHERE format_id=?')->execute([$formatId]);
         $groups = $db->prepare('SELECT id FROM `groups` WHERE phase_id IS NULL AND tournament_id=(SELECT tournament_id FROM competition_formats WHERE id=?)');
         $groups->execute([$formatId]);
         $qualified = [];
@@ -47,10 +50,19 @@ class QualificationService
         }
 
         $insert = $db->prepare('INSERT INTO qualified_players (format_id,player_id,group_id,qualification_position,qualification_type) VALUES (?,?,?,?,?)');
+        $insertQualification = $db->prepare('INSERT INTO qualifications (format_id,group_id,player_id,qualification_position,qualification_type) VALUES (?,?,?,?,?)');
+        $markStanding = $db->prepare('UPDATE group_standings SET qualified=1 WHERE format_id=? AND group_id=? AND player_id=?');
+        $markPlayer = $db->prepare('UPDATE group_players SET qualified=1 WHERE format_id=? AND group_id=? AND player_id=?');
+
         foreach ($qualified as $q) {
             $insert->execute([$formatId, $q['player_id'], $q['group_id'], $q['position'], $q['type']]);
+            $insertQualification->execute([$formatId, $q['group_id'], $q['player_id'], $q['position'], $q['type']]);
+            $markStanding->execute([$formatId, $q['group_id'], $q['player_id']]);
+            $markPlayer->execute([$formatId, $q['group_id'], $q['player_id']]);
         }
 
+        $finalPos = $db->prepare('UPDATE group_players gp INNER JOIN group_standings gs ON gs.group_id=gp.group_id AND gs.player_id=gp.player_id SET gp.position_final=gs.position WHERE gp.format_id=? AND gs.format_id=?');
+        $finalPos->execute([$formatId, $formatId]);
         $db->prepare('UPDATE competition_formats SET status="groups_closed" WHERE id=?')->execute([$formatId]);
         return $qualified;
     }

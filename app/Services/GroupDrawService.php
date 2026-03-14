@@ -43,10 +43,10 @@ class GroupDrawService
             $db->prepare('DELETE FROM `groups` WHERE tournament_id=? AND phase_id IS NULL AND name LIKE "Auto-%"')->execute([(int)$format['tournament_id']]);
 
             $groupIds = [];
-            $insGroup = $db->prepare('INSERT INTO `groups` (tournament_id,phase_id,name) VALUES (?,NULL,?)');
+            $insGroup = $db->prepare('INSERT INTO `groups` (tournament_id,phase_id,name,order_index,status,is_locked) VALUES (?,NULL,?,? ,"active",0)');
             for ($i = 0; $i < $groupCount; $i++) {
                 $name = 'Auto-' . ($groupNames[$i] ?? ('G' . ($i + 1)));
-                $insGroup->execute([(int)$format['tournament_id'], $name]);
+                $insGroup->execute([(int)$format['tournament_id'], $name, $i + 1]);
                 $groupIds[] = (int)$db->lastInsertId();
             }
 
@@ -70,6 +70,7 @@ class GroupDrawService
 
             $insertGp = $db->prepare('INSERT INTO group_players (format_id,group_id,player_id,seed_number,ranking_position,source_tag) VALUES (?,?,?,?,?,?)');
             $insertMatch = $db->prepare('INSERT INTO group_matches (format_id,group_id,player_a_id,player_b_id,status) VALUES (?,?,?,?,"scheduled")');
+            $standingService = new GroupStandingService();
             foreach ($groups as $gid => $playerIds) {
                 foreach (array_values($playerIds) as $rankIdx => $pid) {
                     $insertGp->execute([$formatId, $gid, $pid, $rankIdx + 1, $rankIdx + 1, 'auto']);
@@ -80,6 +81,7 @@ class GroupDrawService
                         $insertMatch->execute([$formatId, $gid, $playerIds[$i], $playerIds[$j]]);
                     }
                 }
+                $standingService->recalculate($formatId, (int)$gid);
             }
 
             $db->prepare('UPDATE competition_formats SET status="groups_generated", updated_by=? WHERE id=?')

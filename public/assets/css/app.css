@@ -21,3 +21,8 @@ body{background:linear-gradient(180deg,#eff4fb,#f8fbff);color:var(--text)}
 .public-shell a{text-decoration:none;color:#1d4ed8}
 @media(max-width:992px){.sidebar{display:none}.container-fluid{padding:1rem!important}}
 .login-ball{width:62px;height:62px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#0ea5e9,#2563eb);color:#fff;font-size:1.35rem;box-shadow:0 10px 22px rgba(14,165,233,.35)}
+
+.breadcrumb{--bs-breadcrumb-divider:'›'}
+.nav-tabs .nav-link{font-weight:600;color:#475569}
+.nav-tabs .nav-link.active{color:#0f172a;background:#fff;border-color:#e5eaf2 #e5eaf2 #fff}
+code{font-size:.72rem;white-space:normal}

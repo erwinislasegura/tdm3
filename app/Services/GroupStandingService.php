@@ -24,7 +24,7 @@ class GroupStandingService
                 'player_id' => (int)$row['player_id'],
                 'name' => trim(($row['first_name'] ?? '') . ' ' . ($row['last_name'] ?? '')),
                 'played' => 0, 'won' => 0, 'lost' => 0, 'match_points' => 0,
-                'games_for' => 0, 'games_against' => 0, 'points_for' => 0, 'points_against' => 0,
+                'games_for' => 0, 'games_against' => 0, 'sets_for' => 0, 'sets_against' => 0, 'points_for' => 0, 'points_against' => 0,
             ];
         }
 
@@ -56,6 +56,8 @@ class GroupStandingService
 
             $stats[$a]['games_for'] += $ga; $stats[$a]['games_against'] += $gb;
             $stats[$b]['games_for'] += $gb; $stats[$b]['games_against'] += $ga;
+            $stats[$a]['sets_for'] += $ga; $stats[$a]['sets_against'] += $gb;
+            $stats[$b]['sets_for'] += $gb; $stats[$b]['sets_against'] += $ga;
             $stats[$a]['points_for'] += $pa; $stats[$a]['points_against'] += $pb;
             $stats[$b]['points_for'] += $pb; $stats[$b]['points_against'] += $pa;
         }
@@ -73,15 +75,15 @@ class GroupStandingService
             return $yPR <=> $xPR;
         });
 
-        $upsert = $db->prepare('INSERT INTO group_standings (format_id,group_id,player_id,played,won,lost,match_points,games_for,games_against,game_ratio,points_for,points_against,point_ratio,position,tie_break_note,tiebreak_level,tiebreak_trace)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
-            ON DUPLICATE KEY UPDATE played=VALUES(played),won=VALUES(won),lost=VALUES(lost),match_points=VALUES(match_points),games_for=VALUES(games_for),games_against=VALUES(games_against),game_ratio=VALUES(game_ratio),points_for=VALUES(points_for),points_against=VALUES(points_against),point_ratio=VALUES(point_ratio),position=VALUES(position),tie_break_note=VALUES(tie_break_note),tiebreak_level=VALUES(tiebreak_level),tiebreak_trace=VALUES(tiebreak_trace)');
+        $upsert = $db->prepare('INSERT INTO group_standings (format_id,group_id,player_id,played,won,lost,match_points,games_for,games_against,sets_for,sets_against,sets_ratio,game_ratio,points_for,points_against,point_ratio,position,tie_break_note,tiebreak_level,tiebreak_trace,qualified)
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+            ON DUPLICATE KEY UPDATE played=VALUES(played),won=VALUES(won),lost=VALUES(lost),match_points=VALUES(match_points),games_for=VALUES(games_for),games_against=VALUES(games_against),sets_for=VALUES(sets_for),sets_against=VALUES(sets_against),sets_ratio=VALUES(sets_ratio),game_ratio=VALUES(game_ratio),points_for=VALUES(points_for),points_against=VALUES(points_against),point_ratio=VALUES(point_ratio),position=VALUES(position),tie_break_note=VALUES(tie_break_note),tiebreak_level=VALUES(tiebreak_level),tiebreak_trace=VALUES(tiebreak_trace),qualified=VALUES(qualified)');
 
         $position = 1;
         foreach ($ordered as $row) {
             $gr = $row['games_against'] > 0 ? $row['games_for'] / $row['games_against'] : (float)$row['games_for'];
             $pr = $row['points_against'] > 0 ? $row['points_for'] / $row['points_against'] : (float)$row['points_for'];
-            $upsert->execute([$formatId,$groupId,$row['player_id'],$row['played'],$row['won'],$row['lost'],$row['match_points'],$row['games_for'],$row['games_against'],$gr,$row['points_for'],$row['points_against'],$pr,$position,'ITTF: match points > game ratio > point ratio',4,json_encode(['match_points','head_to_head','game_ratio','point_ratio'])]);
+            $upsert->execute([$formatId,$groupId,$row['player_id'],$row['played'],$row['won'],$row['lost'],$row['match_points'],$row['games_for'],$row['games_against'],$row['sets_for'],$row['sets_against'],$gr,$gr,$row['points_for'],$row['points_against'],$pr,$position,'ITTF: match points > head_to_head > game ratio > point ratio',4,json_encode(['match_points','head_to_head','game_ratio','point_ratio']),0]);
             $position++;
         }
 

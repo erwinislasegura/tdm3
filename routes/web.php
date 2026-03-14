@@ -64,3 +64,12 @@ $router->post('/admin/competition-formats/{id}/generate-groups', [CompetitionFor
 $router->post('/admin/competition-formats/{id}/matches/{id}/score', [CompetitionFormatController::class, 'scoreMatch'], [AuthMiddleware::class]);
 $router->post('/admin/competition-formats/{id}/close-groups', [CompetitionFormatController::class, 'closeGroups'], [AuthMiddleware::class]);
 $router->post('/admin/competition-formats/{id}/generate-knockout', [CompetitionFormatController::class, 'generateKnockout'], [AuthMiddleware::class]);
+
+$router->post('/admin/competition-formats/{id}/groups/{id}/recalculate', [CompetitionFormatController::class, 'recalculateStandings'], [AuthMiddleware::class]);
+$router->post('/admin/competition-formats/{id}/groups/{id}/lock', [CompetitionFormatController::class, 'lockGroup'], [AuthMiddleware::class]);
+
+$router->get('/multi-torneos/{multiTournamentId}/torneos/{tournamentId}/fases/{phaseId}/grupos', [CompetitionFormatController::class, 'phaseGroupsView'], [AuthMiddleware::class]);
+$router->post('/fases/{phaseId}/grupos/generar', [CompetitionFormatController::class, 'phaseGenerateGroups'], [AuthMiddleware::class]);
+$router->post('/fases/{phaseId}/grupos/{groupId}/cerrar', [CompetitionFormatController::class, 'phaseGroupClose'], [AuthMiddleware::class]);
+$router->post('/partidos/{matchId}/score', [CompetitionFormatController::class, 'scoreByMatchId'], [AuthMiddleware::class]);
+$router->post('/fases/{phaseId}/clasificar', [CompetitionFormatController::class, 'phaseClassify'], [AuthMiddleware::class]);
